@@ -1,8 +1,8 @@
-from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
+from django.contrib.auth import authenticate, get_user_model
 
 User = get_user_model()
 
@@ -61,3 +61,24 @@ class RegisterSerializer(serializers.ModelSerializer):
         validated_data.pop("password_confirm")
         # create_user hashes the password and lowercases the email
         return User.objects.create_user(**validated_data)
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField(
+        write_only=True, trim_whitespace=False, style={"input_type": "password"}
+    )
+
+    def validate(self, attrs):
+        user = authenticate(
+            request=self.context.get("request"),
+            email=attrs["email"].lower(),
+            password=attrs["password"],
+        )
+        if user is None:
+            # Same message for unknown email, wrong password or inactive account:
+            # we never reveal which one it was.
+            raise serializers.ValidationError(
+                "Invalid email or password.", code="authorization"
+            )
+        attrs["user"] = user
+        return attrs

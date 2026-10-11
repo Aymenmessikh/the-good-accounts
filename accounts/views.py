@@ -1,10 +1,12 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 
-from .serializers import RegisterSerializer, UserSerializer
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
+from django.contrib.auth import login, logout
+from rest_framework.views import APIView
+from .serializers import LoginSerializer, RegisterSerializer, UserSerializer
 
 from .forms import RegisterForm
 class RegisterAPIView(generics.CreateAPIView):
@@ -33,3 +35,23 @@ class RegisterView(CreateView):
         response = super().form_valid(form)
         messages.success(self.request, "Your account has been created.")
         return response
+
+class LoginAPIView(APIView):
+    """Authenticate with email + password and open a session."""
+
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data["user"]
+        login(request, user)  # creates the session and sets the session cookie
+        return Response(UserSerializer(user).data)
+
+
+class LogoutAPIView(APIView):
+    """Close the current session. Requires to be logged in."""
+
+    def post(self, request):
+        logout(request)  # flushes the session
+        return Response(status=status.HTTP_204_NO_CONTENT)
