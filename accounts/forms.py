@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
+from django.contrib.auth.forms import AuthenticationForm
 
 User = get_user_model()
 
@@ -54,3 +55,19 @@ class RegisterForm(forms.ModelForm):
         if commit:
             user.save()
         return user
+
+class LoginForm(AuthenticationForm):
+    """Login form using the email (Django's form always names the field 'username')."""
+
+    username = forms.EmailField(
+        label="Email", widget=forms.EmailInput(attrs={"autofocus": True})
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.setdefault("class", "form-control")
+
+    def clean_username(self):
+        # Emails are stored in lowercase, so "Alice@X.com" must still work
+        return self.cleaned_data["username"].lower()

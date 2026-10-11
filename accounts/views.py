@@ -29,7 +29,7 @@ class RegisterView(CreateView):
     form_class = RegisterForm
     template_name = "accounts/register.html"
     # Temporary target: it will point to the login page once F3 is done
-    success_url = reverse_lazy("accounts:register")
+    success_url = reverse_lazy("accounts:login")
 
     def form_valid(self, form):
         response = super().form_valid(form)
