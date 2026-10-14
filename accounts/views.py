@@ -4,15 +4,16 @@ from rest_framework.response import Response
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
-from django.contrib.auth import login, logout
 from rest_framework.views import APIView
 from .serializers import (
+    ChangePasswordSerializer,
     LoginSerializer,
     ProfileSerializer,
     RegisterSerializer,
     UserSerializer,
 )
 
+from django.contrib.auth import login, logout, update_session_auth_hash
 from .forms import RegisterForm
 class RegisterAPIView(generics.CreateAPIView):
     """Create a new account. Open to anonymous users."""
@@ -70,3 +71,17 @@ class MeAPIView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         # No id in the URL: a user can only ever reach their own profile
         return self.request.user
+
+class ChangePasswordAPIView(APIView):
+    """Change the password of the logged-in user."""
+
+    def post(self, request):
+        serializer = ChangePasswordSerializer(
+            data=request.data, context={"request": request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        # Django ties the session to a hash of the password: without this call the
+        # user would be logged out right after changing it.
+        update_session_auth_hash(request, request.user)
+        return Response(status=status.HTTP_204_NO_CONTENT)
