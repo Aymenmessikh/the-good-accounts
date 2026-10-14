@@ -3,7 +3,7 @@ from rest_framework.response import Response
 
 from django.contrib import messages
 from django.urls import reverse_lazy
-from django.views.generic import CreateView
+from .forms import AccountPasswordChangeForm, ProfileForm, RegisterForm
 from rest_framework.views import APIView
 from .serializers import (
     ChangePasswordSerializer,
@@ -12,6 +12,11 @@ from .serializers import (
     RegisterSerializer,
     UserSerializer,
 )
+
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.messages.views import SuccessMessageMixin
+from django.views.generic import CreateView, UpdateView
 
 from django.contrib.auth import login, logout, update_session_auth_hash
 from .forms import RegisterForm
@@ -85,3 +90,23 @@ class ChangePasswordAPIView(APIView):
         # user would be logged out right after changing it.
         update_session_auth_hash(request, request.user)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class ProfileView(LoginRequiredMixin, SuccessMessageMixin, UpdateView):
+    """Show and edit the names of the logged-in user."""
+
+    form_class = ProfileForm
+    template_name = "accounts/profile.html"
+    success_url = reverse_lazy("accounts:profile")
+    success_message = "Your profile has been updated."
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
+
+class AccountPasswordChangeView(SuccessMessageMixin, auth_views.PasswordChangeView):
+    """Change password from the website. The session stays valid afterwards."""
+
+    form_class = AccountPasswordChangeForm
+    template_name = "accounts/password_change.html"
+    success_url = reverse_lazy("accounts:profile")
+    success_message = "Your password has been changed."

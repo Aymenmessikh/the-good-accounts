@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 
 User = get_user_model()
 
@@ -71,3 +71,21 @@ class LoginForm(AuthenticationForm):
     def clean_username(self):
         # Emails are stored in lowercase, so "Alice@X.com" must still work
         return self.cleaned_data["username"].lower()
+
+class BootstrapFormMixin:
+    """Adds the Bootstrap 'form-control' class to every field."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.setdefault("class", "form-control")
+
+
+class ProfileForm(BootstrapFormMixin, forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ("first_name", "last_name")  # the email is deliberately not editable
+
+
+class AccountPasswordChangeForm(BootstrapFormMixin, PasswordChangeForm):
+    """Django's password change form (old + new + confirmation) with Bootstrap styling."""
