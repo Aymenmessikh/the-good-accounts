@@ -6,7 +6,12 @@ from django.urls import reverse_lazy
 from django.views.generic import CreateView
 from django.contrib.auth import login, logout
 from rest_framework.views import APIView
-from .serializers import LoginSerializer, RegisterSerializer, UserSerializer
+from .serializers import (
+    LoginSerializer,
+    ProfileSerializer,
+    RegisterSerializer,
+    UserSerializer,
+)
 
 from .forms import RegisterForm
 class RegisterAPIView(generics.CreateAPIView):
@@ -55,3 +60,13 @@ class LogoutAPIView(APIView):
     def post(self, request):
         logout(request)  # flushes the session
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class MeAPIView(generics.RetrieveUpdateAPIView):
+    """Read or partially update the profile of the logged-in user."""
+
+    serializer_class = ProfileSerializer
+    http_method_names = ["get", "patch", "head", "options"]
+
+    def get_object(self):
+        # No id in the URL: a user can only ever reach their own profile
+        return self.request.user

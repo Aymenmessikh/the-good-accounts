@@ -82,3 +82,11 @@ class LoginSerializer(serializers.Serializer):
             )
         attrs["user"] = user
         return attrs
+
+class ProfileSerializer(serializers.ModelSerializer):
+    """The logged-in user's own profile. Only the names can be changed."""
+
+    class Meta:
+        model = User
+        fields = ("id", "email", "first_name", "last_name", "date_joined")
+        read_only_fields = ("id", "email", "date_joined")
