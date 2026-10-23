@@ -1,0 +1,6 @@
+{% extends "base.html" %}{% block title %}Mes porte-monnaies{% endblock %}{% block content %}
+<h1 class="h3">Mes porte-monnaies</h1>
+<ul class="list-group mb-4">{% for wallet in wallets %}<li class="list-group-item"><a href="{% url 'wallets:detail' wallet.id %}">{{ wallet.name }}</a> — {% if wallet.is_closed %}clos{% else %}ouvert{% endif %}</li>{% empty %}<li class="list-group-item">Aucun porte-monnaie.</li>{% endfor %}</ul>
+<h2 class="h5">Créer un porte-monnaie</h2><form method="post" action="{% url 'wallets:create' %}">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary">Créer</button></form>
+{% if invitations %}<h2 class="h5 mt-4">Invitations reçues</h2>{% for invitation in invitations %}<form method="post" action="{% url 'wallets:accept' invitation.id %}" class="mb-2">{% csrf_token %}{{ invitation.wallet.name }} <button class="btn btn-sm btn-success">Accepter</button></form>{% endfor %}{% endif %}
+{% endblock %}

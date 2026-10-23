@@ -1,0 +1,33 @@
+from django.conf import settings
+from django.db import models
+
+
+class Wallet(models.Model):
+    name = models.CharField(max_length=100)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="created_wallets")
+    members = models.ManyToManyField(settings.AUTH_USER_MODEL, through="Membership", related_name="wallets")
+    is_closed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Membership(models.Model):
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    joined_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["wallet", "user"], name="unique_wallet_member")]
+
+
+class Invitation(models.Model):
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name="invitations")
+    email = models.EmailField()
+    invited_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    accepted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["wallet", "email"], name="unique_wallet_invitation")]

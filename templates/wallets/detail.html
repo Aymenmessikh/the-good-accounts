@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block title %}{{ wallet.name }}{% endblock %}{% block content %}
+<h1 class="h3">{{ wallet.name }} {% if wallet.is_closed %}<span class="badge bg-secondary">Clos</span>{% endif %}</h1>
+<p>Membres : {% for member in wallet.members.all %}{{ member.get_full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+<h2 class="h5">Dépenses (total : {{ total }} €)</h2><ul class="list-group mb-3">{% for expense in expenses %}<li class="list-group-item d-flex justify-content-between">{{ expense.description }} — {{ expense.amount }} € (payé par {{ expense.paid_by|default:expense.created_by }}){% if expense.can_delete %}<form method="post" action="{% url 'wallets:delete_expense' expense.id %}">{% csrf_token %}<button class="btn btn-sm btn-outline-danger">Supprimer</button></form>{% endif %}</li>{% empty %}<li class="list-group-item">Aucune dépense.</li>{% endfor %}</ul>
+{% if pending_invitations %}<h2 class="h5">Invitations en attente</h2><ul>{% for invitation in pending_invitations %}<li>{{ invitation.email }}</li>{% endfor %}</ul>{% endif %}
+{% if not wallet.is_closed %}<h2 class="h5">Ajouter une dépense</h2><form method="post">{% csrf_token %}{{ expense_form.as_p }}<button name="add_expense" class="btn btn-primary">Ajouter</button></form>
+<h2 class="h5 mt-4">Inviter un compte</h2><form method="post">{% csrf_token %}{{ invitation_form.as_p }}<button name="invite" class="btn btn-outline-primary">Inviter</button></form>
+<form method="post" action="{% url 'wallets:close' wallet.id %}" class="mt-4">{% csrf_token %}<button class="btn btn-warning">Clôturer et calculer les soldes</button></form>{% else %}<h2 class="h5">Soldes après partage égal</h2><ul>{% for item in balances %}<li>{{ item.user.get_full_name }} : {% if item.balance > 0 %}doit recevoir{% else %}doit donner{% endif %} {{ item.balance|floatformat:2|cut:"-" }} €</li>{% endfor %}</ul>{% endif %}
+<a href="{% url 'wallets:list' %}">Retour</a>{% endblock %}
