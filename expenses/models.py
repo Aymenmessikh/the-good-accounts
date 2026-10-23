@@ -4,6 +4,8 @@ from django.db import models
 
 
 class Expense(models.Model):
+    """A purchase recorded in a wallet, optionally linked to its payer."""
+
     wallet = models.ForeignKey("wallets.Wallet", on_delete=models.CASCADE, related_name="expenses")
     description = models.CharField(max_length=200)
     amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0.01)])

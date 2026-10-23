@@ -14,6 +14,7 @@ from .models import Invitation, Membership, Wallet
 
 @login_required
 def wallet_list(request):
+    """Show the current user's wallets and invitations addressed to them."""
     wallets = Wallet.objects.filter(members=request.user).distinct()
     invitations = Invitation.objects.filter(email__iexact=request.user.email, accepted=False)
     return render(request, "wallets/list.html", {"wallets": wallets, "invitations": invitations, "form": WalletForm()})
@@ -21,6 +22,7 @@ def wallet_list(request):
 
 @login_required
 def wallet_create(request):
+    """Create a wallet and add its creator as the first member."""
     form = WalletForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         wallet = form.save(commit=False)
@@ -33,6 +35,7 @@ def wallet_create(request):
 
 @login_required
 def invitation_accept(request, invitation_id):
+    """Accept an invitation addressed to the current user's email."""
     invitation = get_object_or_404(Invitation, pk=invitation_id, email__iexact=request.user.email, accepted=False)
     invitation.accepted = True
     invitation.save(update_fields=["accepted"])
@@ -43,6 +46,7 @@ def invitation_accept(request, invitation_id):
 
 @login_required
 def wallet_detail(request, wallet_id):
+    """Show a member-only wallet page and handle expense or invite forms."""
     wallet = get_object_or_404(Wallet, pk=wallet_id, members=request.user)
     expense_form = ExpenseForm(request.POST or None)
     expense_form.fields["paid_by"].queryset = wallet.members.all()
@@ -83,6 +87,7 @@ def wallet_detail(request, wallet_id):
 
 @login_required
 def expense_delete(request, expense_id):
+    """Delete an expense only when the current user is allowed to do so."""
     expense = get_object_or_404(Expense.objects.select_related("wallet"), pk=expense_id, wallet__members=request.user)
     can_delete = expense.paid_by_id == request.user.id if expense.paid_by_id else expense.created_by_id == request.user.id
     if request.method == "POST" and not expense.wallet.is_closed and can_delete:
@@ -96,6 +101,7 @@ def expense_delete(request, expense_id):
 @login_required
 @transaction.atomic
 def wallet_close(request, wallet_id):
+    """Close a wallet so members can review the simple equal-share balance."""
     wallet = get_object_or_404(Wallet.objects.select_for_update(), pk=wallet_id, members=request.user)
     if request.method == "POST":
         wallet.is_closed = True

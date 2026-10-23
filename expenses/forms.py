@@ -3,6 +3,8 @@ from .models import Expense
 
 
 class ExpenseForm(forms.ModelForm):
+    """Collects the description, amount, and optional payer for an expense."""
+
     class Meta:
         model = Expense
         fields = ["description", "amount", "paid_by"]

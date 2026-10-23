@@ -3,6 +3,8 @@ from django.db import models
 
 
 class Wallet(models.Model):
+    """A shared space for members, invitations, and expenses."""
+
     name = models.CharField(max_length=100)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="created_wallets")
     members = models.ManyToManyField(settings.AUTH_USER_MODEL, through="Membership", related_name="wallets")
@@ -14,6 +16,8 @@ class Wallet(models.Model):
 
 
 class Membership(models.Model):
+    """Links a user to a wallet they are allowed to access."""
+
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     joined_at = models.DateTimeField(auto_now_add=True)
@@ -23,6 +27,8 @@ class Membership(models.Model):
 
 
 class Invitation(models.Model):
+    """Pending invitation addressed to a user's email address."""
+
     wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name="invitations")
     email = models.EmailField()
     invited_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
