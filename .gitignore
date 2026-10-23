@@ -1,6 +1,15 @@
 .venv/
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+
+# Local IDE configuration
+.idea/
+
+# Local database and environment settings
 db.sqlite3
 .env
-.idea/
+
+# Test and type-check caches
+.pytest_cache/
+.mypy_cache/
