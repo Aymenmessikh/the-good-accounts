@@ -8,5 +8,7 @@ urlpatterns = [
     path("wallets/invitations/<int:invitation_id>/accept/", views.invitation_accept, name="accept"),
     path("wallets/<int:wallet_id>/", views.wallet_detail, name="detail"),
     path("wallets/<int:wallet_id>/close/", views.wallet_close, name="close"),
+    path("wallets/<int:wallet_id>/live/", views.wallet_live, name="live"),
+    path("wallets/<int:wallet_id>/reimburse/", views.reimburse, name="reimburse"),
     path("expenses/<int:expense_id>/delete/", views.expense_delete, name="delete_expense"),
 ]

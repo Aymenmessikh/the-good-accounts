@@ -37,3 +37,19 @@ class Invitation(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["wallet", "email"], name="unique_wallet_invitation")]
+
+
+class Reimbursement(models.Model):
+    """Simulated (mock) transfer of money between two members of a closed wallet."""
+
+    wallet = models.ForeignKey(Wallet, on_delete=models.CASCADE, related_name="reimbursements")
+    from_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reimbursements_sent")
+    to_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="reimbursements_received")
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.from_user} → {self.to_user} : {self.amount} €"

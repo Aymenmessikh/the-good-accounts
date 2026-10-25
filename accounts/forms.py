@@ -8,6 +8,8 @@ User = get_user_model()
 
 
 class RegisterForm(forms.ModelForm):
+    """Sign-up form: email, names and a password typed twice."""
+
     password1 = forms.CharField(
         label="Password", strip=False, widget=forms.PasswordInput
     )
@@ -25,12 +27,14 @@ class RegisterForm(forms.ModelForm):
             field.widget.attrs.setdefault("class", "form-control")
 
     def clean_email(self):
+        """Lowercase the email and reject it if an account already uses it."""
         email = self.cleaned_data["email"].lower()
         if User.objects.filter(email__iexact=email).exists():
             raise ValidationError("A user with this email already exists.")
         return email
 
     def clean(self):
+        """Check that both passwords match and pass Django's password validators."""
         cleaned = super().clean()
         password1 = cleaned.get("password1")
         password2 = cleaned.get("password2")
@@ -50,6 +54,7 @@ class RegisterForm(forms.ModelForm):
         return cleaned
 
     def save(self, commit=True):
+        """Hash the password before saving the new user."""
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password1"])
         if commit:
@@ -82,6 +87,8 @@ class BootstrapFormMixin:
 
 
 class ProfileForm(BootstrapFormMixin, forms.ModelForm):
+    """Edit the first and last name of the logged-in user."""
+
     class Meta:
         model = User
         fields = ("first_name", "last_name")  # the email is deliberately not editable

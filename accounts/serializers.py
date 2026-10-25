@@ -17,6 +17,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
+    """API sign-up payload, validated like the HTML RegisterForm."""
+
     email = serializers.EmailField(
         validators=[
             UniqueValidator(
@@ -58,11 +60,14 @@ class RegisterSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
+        """Create the user through the manager so the password gets hashed."""
         validated_data.pop("password_confirm")
         # create_user hashes the password and lowercases the email
         return User.objects.create_user(**validated_data)
 
 class LoginSerializer(serializers.Serializer):
+    """API login payload: checks the email/password pair."""
+
     email = serializers.EmailField()
     password = serializers.CharField(
         write_only=True, trim_whitespace=False, style={"input_type": "password"}
@@ -92,6 +97,8 @@ class ProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "email", "date_joined")
 
 class ChangePasswordSerializer(serializers.Serializer):
+    """API payload to change the logged-in user's password."""
+
     old_password = serializers.CharField(
         write_only=True, trim_whitespace=False, style={"input_type": "password"}
     )
@@ -103,6 +110,7 @@ class ChangePasswordSerializer(serializers.Serializer):
     )
 
     def validate_old_password(self, value):
+        """Reject the request if the current password is wrong."""
         user = self.context["request"].user
         if not user.check_password(value):
             raise serializers.ValidationError("Your current password is incorrect.")
