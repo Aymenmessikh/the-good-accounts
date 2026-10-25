@@ -1,0 +1,17 @@
+{% comment %}
+Live section of the wallet page. Rendered inside detail.html and re-rendered
+by the wallets:live polling endpoint whenever the wallet changes.
+{% endcomment %}
+<p>Membres : {% for member in members %}{{ member.get_full_name }}{% if not forloop.last %}, {% endif %}{% endfor %}</p>
+<h2 class="h5">Dépenses (total : {{ total }} €)</h2>
+<ul class="list-group mb-3">{% for expense in expenses %}<li class="list-group-item d-flex justify-content-between">{{ expense.description }} — {{ expense.amount }} € (payé par {{ expense.paid_by|default:expense.created_by }}){% if expense.can_delete %}<form method="post" action="{% url 'wallets:delete_expense' expense.id %}">{% csrf_token %}<button class="btn btn-sm btn-outline-danger">Supprimer</button></form>{% endif %}</li>{% empty %}<li class="list-group-item">Aucune dépense.</li>{% endfor %}</ul>
+{% if pending_invitations %}<h2 class="h5">Invitations en attente</h2><ul>{% for invitation in pending_invitations %}<li>{{ invitation.email }}</li>{% endfor %}</ul>{% endif %}
+{% if wallet.is_closed %}
+<h2 class="h5">Doivent recevoir</h2>
+<ul>{% for item in creditors %}<li>{{ item.user.get_full_name }} : {{ item.amount }} €</li>{% empty %}<li>Personne.</li>{% endfor %}</ul>
+<h2 class="h5">Doivent donner</h2>
+<ul>{% for item in debtors %}<li>{{ item.user.get_full_name }} : {{ item.amount }} €</li>{% empty %}<li>Personne.</li>{% endfor %}</ul>
+<h2 class="h5">Virements à effectuer ({{ transfers|length }})</h2>
+<ul class="list-group mb-3">{% for transfer in transfers %}<li class="list-group-item d-flex justify-content-between align-items-center">{{ transfer.from.get_full_name }} → {{ transfer.to.get_full_name }} : {{ transfer.amount }} €{% if transfer.is_mine %}<form method="post" action="{% url 'wallets:reimburse' wallet.id %}">{% csrf_token %}<input type="hidden" name="to_user" value="{{ transfer.to.id }}"><button class="btn btn-sm btn-success">Rembourser (simulé)</button></form>{% endif %}</li>{% empty %}<li class="list-group-item">Tous les comptes sont soldés.</li>{% endfor %}</ul>
+{% if reimbursements %}<h2 class="h5">Remboursements effectués</h2><ul>{% for item in reimbursements %}<li>{{ item.from_user.get_full_name }} → {{ item.to_user.get_full_name }} : {{ item.amount }} € ({{ item.created_at|date:"d/m/Y H:i" }})</li>{% endfor %}</ul>{% endif %}
+{% endif %}

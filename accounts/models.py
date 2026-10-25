@@ -16,6 +16,7 @@ class UserManager(BaseUserManager):
     use_in_migrations = True
 
     def _create_user(self, email, password, **extra_fields):
+        """Create and save a user with a lowercased email and a hashed password."""
         if not email:
             raise ValueError("The email address is required.")
         email = self.normalize_email(email).lower()
@@ -25,11 +26,13 @@ class UserManager(BaseUserManager):
         return user
 
     def create_user(self, email, password=None, **extra_fields):
+        """Create a regular user (no staff or superuser rights)."""
         extra_fields.setdefault("is_staff", False)
         extra_fields.setdefault("is_superuser", False)
         return self._create_user(email, password, **extra_fields)
 
     def create_superuser(self, email, password=None, **extra_fields):
+        """Create an administrator able to log into the Django admin."""
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
         if extra_fields["is_staff"] is not True:
@@ -40,6 +43,8 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+    """Account identified by a unique, case-insensitive email address."""
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField("email address", max_length=254, unique=True)
     first_name = models.CharField("first name", max_length=100)
@@ -65,7 +70,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.email
 
     def get_full_name(self):
+        """Return "first_name last_name", used everywhere in the UI."""
         return f"{self.first_name} {self.last_name}".strip()
 
     def get_short_name(self):
+        """Return the first name only."""
         return self.first_name
